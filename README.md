@@ -13,12 +13,12 @@ This is a C++ project with next open-source libraries:
 ## General structure
 * physics engine (ful C++ realisation)
 * graphics (SFML library)
-* local net code (SFML library)
+* local net code (SFML library) <br />
 *this list is not full yet*
 
 # History
 
-* 01.03.19
+* 01.03.19 <br />
 Readme was created. The initial setting of the game was discussed and the main graphics library was chosen .
 
 If it will be much free time these points will be separated to different threads
