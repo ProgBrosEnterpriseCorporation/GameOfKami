@@ -13,7 +13,8 @@ This is a C++ project with next open-source libraries:
 ## General structure
 * physics engine (ful C++ realisation)
 * graphics (SFML library)
-* local net code (yet not decided)<br />
+* local net code (yet not decided)
+
 If it will be much free time these points will be separated to different threads
 
 [1]: https://www.sfml-dev.org/
