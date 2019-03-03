@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS_COMPILE=-c -Wall -Wextra -pedantic
-CFLAGS_LINK=-lsfml-graphics -lsfml-window -lsfml-system
+CFLAGS_LINK=-lsfml-graphics -lsfml-window -lsfml-system -lsfml-newtwork
 OBJ=main.o engine.o net.o graphics.o
 PROG=game
 
