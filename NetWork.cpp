@@ -50,23 +50,35 @@ bool SerCon(sf::TcpSocket &socket, std::string IpName, bool DEBAG = false)
 	return true;
 }
 
-void SendData(sf::TcpSocket &socket, const char* data)
+bool SendData(sf::TcpSocket &socket,char* data, size_t size)
 {
 	sf::Packet packet;
-	std::string Data = data;
-	packet << Data;
+	for(size_t i = 0; i < size; i++)
+		data[i]++;
+	packet << data;
 	socket.send(packet);
+	if(data == "!end")
+	{
+		socket.disconnect();
+		return false;
+	}
+	return true;
 }
 
-char * RecData(sf::TcpSocket &socket)//you need char * only
+char * RecData(sf::TcpSocket &socket, size_t size)//you need char * only
 {
-	std::string str;
+	std::string Data;
+	char * data = new char[size];
 	sf::Packet packet;
 	socket.receive(packet);
-	packet >> str;
-	char * data = new char[str.size()+1];
-	for(size_t i = 0; i < str.size()+1;i++)
-		data[i] = str[i];
+	packet >> data;
+	for(size_t i = 0; i < size; i++)
+		data[i]--;	
+	Data = data;
+	if(Data == "!end")
+	{
+		socket.disconnect();
+		return 0;
+	}
 	return data;
 }
-
