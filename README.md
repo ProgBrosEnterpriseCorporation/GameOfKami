@@ -20,6 +20,8 @@ This is a C++ project with next open-source libraries:
 
 * 01.03.19 <br />
 Readme was created. The initial setting of the game was discussed and the main graphics library was chosen .
+* 06.03.19 <br />
+Development of maps and network code is in full swing. The setting of the game is still under discussion.
 
 If it will be much free time these points will be separated to different threads
 
