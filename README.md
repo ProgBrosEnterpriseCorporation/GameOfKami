@@ -16,7 +16,7 @@ This is a C++ project with next open-source libraries:
 * local net code (SFML library) <br />
 *this list is not full yet*
 
-# History
+## History
 
 * 01.03.19 <br />
 Readme was created. The initial setting of the game was discussed and the main graphics library was chosen .
