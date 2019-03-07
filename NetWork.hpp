@@ -12,7 +12,7 @@ char * _RecData(sf::TcpSocket &socket, size_t size);//you need char * only
 template <typename T>
 bool SendData(sf::TcpSocket &socket, T* data)
 {
-	return _SendData(socket, (char *)data, sizeof(data));
+	return _SendData(socket, (char *)data, sizeof(T));
 }
 
 template <typename T>
