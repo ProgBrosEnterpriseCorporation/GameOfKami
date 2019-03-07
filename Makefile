@@ -1,16 +1,15 @@
 CC=g++
 CFLAGS_COMPILE=-c -Wall -Wextra -pedantic
 CFLAGS_LINK=-lsfml-graphics -lsfml-window -lsfml-system -lsfml-network
-OBJ=main.o engine.o net.o graphics.o
+OBJ=main.o NetWork.o
+CODE=main.cpp NetWork.cpp
 PROG=game
 
-all: $(PROG)
-
-$(PROG): $(OBJ)
-	$(CC) -o $(PROG) $(OBJ) $(CFLAGS_LINK)
-
-.cpp.o:
-  $(CC) $(CFLAGS_COMPILE) $<
+all:
+	g++ -c -Wall -Wextra main.cpp NetWork.cpp
+	g++ -lsfml-graphics -lsfml-window -lsfml-system -lsfml-network main.o NetWork.o -o game
 
 clean:
-  $(RM) $(OBJ)
+	rm *.o
+
+

@@ -39,6 +39,8 @@ public:
 
     }
     void doPhysics(float time);
+    void sendNetPos(sf::TcpSocket &socket);
+    void getNetPos(sf::TcpSocket &socket);
 
     };
 
