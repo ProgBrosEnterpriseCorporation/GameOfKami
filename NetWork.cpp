@@ -87,15 +87,3 @@ char * _RecData(sf::TcpSocket &socket, size_t size)//you need char * only
 	}
 	return data;
 }
-
-template <typename T>
-bool SendData(sf::TcpSocket &socket, T* data)
-{
-	return _SendData(socket, (char *)data, sizeof(data));
-}
-
-template <typename T>
-T* RecData(sf::TcpSocket &socket)
-{
-	return (T*)_RecData(socket, sizeof(T));
-}
