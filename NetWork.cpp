@@ -1,6 +1,11 @@
 #include<SFML/Network.hpp>
 #include<iostream>
 
+//TODO
+// Реализовать серверное поведение, когда определимся с передоваемо структурои
+// чтобы не заморачиваться с указателями на методы
+// реализуется через неблокируемыи сокет, о таблицу общих данных
+
 void OnePortLic(sf::TcpSocket &socket,int port, bool DEBAG = false)
 {
 	sf::TcpListener lis;
@@ -50,7 +55,7 @@ bool SerCon(sf::TcpSocket &socket, std::string IpName, bool DEBAG = false)
 	return true;
 }
 
-bool SendData(sf::TcpSocket &socket,char* data, size_t size)
+bool _SendData(sf::TcpSocket &socket,char* data, size_t size)
 {
 	sf::Packet packet;
 	for(size_t i = 0; i < size; i++)
@@ -65,7 +70,7 @@ bool SendData(sf::TcpSocket &socket,char* data, size_t size)
 	return true;
 }
 
-char * RecData(sf::TcpSocket &socket, size_t size)//you need char * only
+char * _RecData(sf::TcpSocket &socket, size_t size)//you need char * only
 {
 	std::string Data;
 	char * data = new char[size];
@@ -81,4 +86,16 @@ char * RecData(sf::TcpSocket &socket, size_t size)//you need char * only
 		return 0;
 	}
 	return data;
+}
+
+template <typename T>
+bool SendData(sf::TcpSocket &socket, T* data)
+{
+	return _SendData(socket, (char *)data, sizeof(data));
+}
+
+template <typename T>
+T* RecData(sf::TcpSocket &socket)
+{
+	return (T*)_RecData(socket, sizeof(T));
 }
