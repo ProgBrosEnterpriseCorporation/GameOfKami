@@ -5,15 +5,6 @@
 #include "her.hpp"
 #include "background.hpp"
 
-struct A
-{
-	double a;
-	void show()
-	{
-		std::cout << a << std::endl;
-	}
-};	
-
 int main()
 {
 
@@ -36,7 +27,7 @@ int main()
 		//Server
 
 		sf::IpAddress IP = sf::IpAddress::getLocalAddress(); // ServIP	
-		OnePortLic(socket, 1233, true);
+		OnePortLic(socket, 321, true);
 		std::cout <<  "Con. to Client" << std::endl;
 		packet << "Con. to Server";
 		mode = 's';
@@ -88,9 +79,7 @@ int main()
         }
 
         hero.doPhysics(time);
-	mode = 's';
 	hero.sendNetPos(socket);
-	mode = 'r';
 	teammate.getNetPos(socket);
 
         window.clear();

@@ -77,17 +77,22 @@ void Hero::doPhysics (float time)
 
 void Hero::sendNetPos(sf::TcpSocket &socket)
 {
-	if(SendData(socket, &pos, 1) == false)
+	SData B;
+	B.NewX = pos.x; 
+	B.NewY = pos.y;
+	if(_SendData(socket, &B, 1) == false)
 		return;
 	return;
 }
 
 void Hero::getNetPos(sf::TcpSocket &socket)
 {
-	sf::Vector2f *B;
-	if((B = RecData<sf::Vector2f>(socket)) == 0)
+	SData *B;
+	int size;
+	if((B = _RecData(socket, size)) == 0)
 		return;
-	pos = *B;
+	pos.x = B -> NewX;
+	pos.y = B -> NewY;
 	sprite.setPosition(pos);
 	delete [] B;
 	return;
