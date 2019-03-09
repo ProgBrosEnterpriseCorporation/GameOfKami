@@ -6,7 +6,6 @@
 // чтобы не заморачиваться с указателями на методы
 // реализуется через неблокируемыи сокет, о таблицу общих данных
 
-
 void OnePortLic(sf::TcpSocket &socket,int port, bool DEBAG)
 {
 	sf::TcpListener lis;
@@ -98,15 +97,6 @@ SData * _RecData(sf::TcpSocket &socket, int &size)//you need char * only
 	}
 	return data;
 }
-
-// ***********SERVER******************* //
-
-void Server()
-{
-	sf::TcpSocket socket[3000];
-	
-}
-
 
 
 SData::SData(double x, double y, int act, std::string com):
