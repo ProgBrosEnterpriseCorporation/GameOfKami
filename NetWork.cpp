@@ -96,14 +96,29 @@ SData * _RecData(sf::TcpSocket &socket, int &size)//you need char * only
 }
 
 // * * * * * * * SERVER * * * * * * * //
+/*
+void ServerConcel( bool * done, sf::Thread * Lthread)
+{
+	while(!(*done))
+	{	
+		String comend;
+		std::getlin(std::cin, comend);
 
+		if(comend == "!end")
+		{
+			*done = true;
+			Lthread -> 
+		}
+	}
+}
+*/
 void BigLins(sf::TcpSocket * sockets)
 {
 	while(1)
 	{
-		sf::TcpListener lis;
 		for(int i = 10; i < 3000; i++)
-		{
+		{		
+			sf::TcpListener lis;	
 			if(sockets[i-10].getLocalPort() != 0)
 				continue;
 			lis.listen(i);
@@ -133,7 +148,6 @@ SData ** RecAllData(sf::TcpSocket * sockets, int N)
 	int k = 0, size = 0;
 	for(int i = 10; i < 3000; i++)
 	{
-		//if(sockets[i-10].getRemoteAddress() == sf::IpAddress::None)
 		if(sockets[i-10].getLocalPort() == 0)
 			continue;
 		sockets[i-10].setBlocking(false);
@@ -182,22 +196,29 @@ void SendAllData(sf::TcpSocket * sockets, SData ** data, int N)
 
 void Server()
 {
+	bool done = false;
 	sf::TcpSocket sockets[3000];
 	sf::Thread Lthread(&BigLins, sockets);
 	Lthread.launch();
-	while(true)
+	while(!done)
 	{
 		int N = NumOfClient(sockets);
 		SData ** data;
 		data = RecAllData(sockets, N);
 
+
+		// * * * * TEST_OF_SERVER * * * * //
 		for(int i = 0; i < N; i++)
-			if(data[i] != 0)
-				for(int j = 0; data[i][j].itis != false; j++)
-					std::cout << data[i][j].Com << std::endl;
+		{
+			if(data[i] == 0)
+				continue;
+			for(int j = 0; data[i][j].itis != false; j++)
+				std::cout << data[i][j].Com << std::endl;
+		}
+
 
 		// you backend will be hear !!!!!
-		
+
 
 		SendAllData(sockets, data, N);
 
