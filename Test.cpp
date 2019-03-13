@@ -1,7 +1,7 @@
-#include<SFML/Network.hpp>
-#include<iostream>
-#include "NetWork.hpp"
+#include <SFML/Network.hpp>
+#include <iostream>
 #include <SFML/Graphics.hpp>
+#include "NetWork.hpp"
 
 
 unsigned short MyPort = 0;
@@ -16,23 +16,6 @@ void foo1(sf::TcpSocket * socket)
 			return;
 	}
 
-}
-
-void foo2(sf::TcpSocket * socket)
-{
-	while(1)
-	{
-		SData *D = 0;
-		int itsize;
-		if((D = _RecData(*socket,itsize)) == 0)
-			continue;
-		for(int i = 0; i < itsize; i++)
-			if(D[i].Num != MyPort)
-				std::cout << "from " 
-				       << D[i].Num << ": "
-			       	       << D[i].Com << std::endl;
-		delete [] D;
-	}
 }
 
 int main()
@@ -62,11 +45,25 @@ int main()
 	}
 	std::getline(std::cin,text);
 	sf::Thread treadS(&foo1, &socket);
-	sf::Thread treadR(&foo2, &socket);
 	treadS.launch();
-	treadR.launch();
-	treadS.wait();
-	treadR.wait();	
+	while(1)
+	{
+		SData *D = 0;
+		int itsize;
+		if((D = _RecData(socket,itsize)) == 0)
+		{
+			if(socket.getLocalPort() == 0)
+				break;
+			continue;
+		}
+		for(int i = 0; i < itsize; i++)
+			if(D[i].Num != MyPort)
+				std::cout << "from " 
+				       << D[i].Num << ": "
+			       	       << D[i].Com << std::endl;
+		delete [] D;
+	}
+	treadS.terminate();
 	return 0;
 
 }

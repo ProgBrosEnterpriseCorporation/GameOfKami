@@ -1,16 +1,15 @@
 #include<SFML/Network.hpp>
 #include<iostream>
 #include "NetWork.hpp"
-//TODO
-// Реализовать серверное поведение, когда определимся с передоваемо структурои
-// чтобы не заморачиваться с указателями на методы
-// реализуется через неблокируемыи сокет, о таблицу общих данных
+#define STARtPORT 10
+#define LAStPORT 3000
+
 
 void OnePortLic(sf::TcpSocket &socket,int port, bool DEBAG)
 {
 	sf::TcpListener lis;
 
-	if(DEBAG = true) // IP должен выдаваться отдельно, это исключиетльно для тестов
+	if(DEBAG = true)
 	{
 		sf::IpAddress IP = sf::IpAddress::getLocalAddress();
 		std::cout << "Server local IP:" << IP << std::endl;
@@ -29,7 +28,7 @@ unsigned short SerCon(sf::TcpSocket &socket, std::string IpName, bool DEBAG)
 	packet.clear();
 	bool done = false;
 	unsigned short i;
-	for(i = 10; i < 3000; i++)
+	for(i = STARtPORT; i < LAStPORT; i++)
 	{
 		if(socket.connect(IP, i, t1) == 0)
 		{
@@ -112,17 +111,19 @@ void ServerConcel( bool * done, sf::Thread * Lthread)
 	}
 }
 */
+
 void BigLins(sf::TcpSocket * sockets)
 {
 	while(1)
 	{
-		for(int i = 10; i < 3000; i++)
+		for(int i = STARtPORT; i < LAStPORT; i++)
 		{		
 			sf::TcpListener lis;	
-			if(sockets[i-10].getLocalPort() != 0)
+			if(sockets[i-STARtPORT].getLocalPort() != 0)
 				continue;
-			lis.listen(i);
-			lis.accept(sockets[i-10]);
+			if(lis.listen(i) == sf::Socket::Error)
+				continue;
+			lis.accept(sockets[i-STARtPORT]);
 
 			std::cout << "==================================" << std::endl;
 			std::cout << "  Client connect to port " << i << std::endl;
@@ -135,8 +136,8 @@ void BigLins(sf::TcpSocket * sockets)
 int NumOfClient(sf::TcpSocket * sockets)
 {
 	int s = 0;
-	for(int i = 10; i < 3000; i++)
-		if(sockets[i-10].getLocalPort())
+	for(int i = STARtPORT; i < LAStPORT; i++)
+		if(sockets[i-STARtPORT].getLocalPort())
 			s++;
 	return s;
 }
@@ -144,14 +145,14 @@ int NumOfClient(sf::TcpSocket * sockets)
 SData ** RecAllData(sf::TcpSocket * sockets, int N)
 {
 	SData ** data = new SData * [N+1];
-	data[N] = 0; // end of big-mass //
+	data[N] = 0;
 	int k = 0, size = 0;
-	for(int i = 10; i < 3000; i++)
+	for(int i = STARtPORT; i < LAStPORT; i++)
 	{
-		if(sockets[i-10].getLocalPort() == 0)
+		if(sockets[i-STARtPORT].getLocalPort() == 0)
 			continue;
-		sockets[i-10].setBlocking(false);
-		data[k++] = _RecData(sockets[i-10],size);
+		sockets[i-STARtPORT].setBlocking(false);
+		data[k++] = _RecData(sockets[i-STARtPORT],size);
 
 		for(int j = 0; j < size; j++)
 			data[k-1][j].Num = i;
@@ -160,10 +161,10 @@ SData ** RecAllData(sf::TcpSocket * sockets, int N)
 		{
 			std::cout << "==================================" << std::endl;
 			std::cout << "  Data come from port " 
-				<< sockets[i-10].getLocalPort() << std::endl;
+				<< sockets[i-STARtPORT].getLocalPort() << std::endl;
 			std::cout << "==================================" << std::endl;
 		}
-		sockets[i-10].setBlocking(true);
+		sockets[i-STARtPORT].setBlocking(true);
 	}
 	return data;
 }
@@ -189,15 +190,15 @@ void SendAllData(sf::TcpSocket * sockets, SData ** data, int N)
 			DataForSend[k++] = data[i][j];
 	}
 
-	for(int i = 10; i < 3000; i++)
-		if(sockets[i-10].getLocalPort() != 0)
-			_SendData(sockets[i-10], DataForSend, size);	
+	for(int i = STARtPORT; i < LAStPORT; i++)
+		if(sockets[i-STARtPORT].getLocalPort() != 0)
+			_SendData(sockets[i-STARtPORT], DataForSend, size);	
 }
 
 void Server()
 {
 	bool done = false;
-	sf::TcpSocket sockets[3000];
+	sf::TcpSocket sockets[LAStPORT];
 	sf::Thread Lthread(&BigLins, sockets);
 	Lthread.launch();
 	while(!done)
@@ -216,9 +217,7 @@ void Server()
 				std::cout << data[i][j].Com << std::endl;
 		}
 
-
 		// you backend will be hear !!!!!
-
 
 		SendAllData(sockets, data, N);
 
