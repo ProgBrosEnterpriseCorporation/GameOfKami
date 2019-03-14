@@ -1,5 +1,6 @@
 #include<SFML/Network.hpp>
 #include<iostream>
+#include<unistd.h>
 #include "NetWork.hpp"
 #define STARtPORT 10
 #define LAStPORT 3000
@@ -224,6 +225,7 @@ void Server()
 		for(int i = 0; i < N+1; i++)
 			delete [] data[i];
 		delete [] data;
+        usleep(10);
 	}
 }
 

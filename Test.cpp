@@ -1,6 +1,7 @@
 #include <SFML/Network.hpp>
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include <unistd.h>
 #include "NetWork.hpp"
 
 
@@ -62,6 +63,7 @@ int main()
 				       << D[i].Num << ": "
 			       	       << D[i].Com << std::endl;
 		delete [] D;
+        usleep(10);
 	}
 	treadS.terminate();
 	return 0;
