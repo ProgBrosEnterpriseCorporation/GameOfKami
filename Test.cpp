@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include "NetWork.hpp"
 
-
 unsigned short MyPort = 0;
 
 void foo1(sf::TcpSocket * socket)
@@ -58,12 +57,12 @@ int main()
 			continue;
 		}
 		for(int i = 0; i < itsize; i++)
-			if(D[i].Num != MyPort)
+			if(D[i].Num != MyPort && D[i].Num != 0)
 				std::cout << "from " 
 				       << D[i].Num << ": "
 			       	       << D[i].Com << std::endl;
 		delete [] D;
-        usleep(10);
+		usleep(15);
 	}
 	treadS.terminate();
 	return 0;

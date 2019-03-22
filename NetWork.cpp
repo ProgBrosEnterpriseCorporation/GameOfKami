@@ -1,6 +1,10 @@
-#include<SFML/Network.hpp>
-#include<iostream>
-#include<unistd.h>
+#include <SFML/Network.hpp>
+#include <iostream>
+#include <unistd.h>
+#include <chrono>
+#include <thread>
+#include <mutex>
+#include <list>
 #include "NetWork.hpp"
 #define STARtPORT 10
 #define LAStPORT 3000
@@ -50,13 +54,13 @@ bool _SendData(sf::TcpSocket &socket, SData* data, int size)
 	sf::Packet packet;
 	packet.clear();
 	packet << size;
-	for(SData* i = data; i < data+size; i++)
+	for(int i = 0; i < size; i++)
 	{
-		packet << data -> Num;
-		packet << data -> NewX;
-		packet << data -> NewY;
-		packet << data -> Act;
-		packet << data -> Com;
+		packet << data[i].Num;
+		packet << data[i].NewX;
+		packet << data[i].NewY;
+		packet << data[i].Act;
+		packet << data[i].Com;
 	}
 	socket.send(packet);
 	return true;
@@ -77,41 +81,135 @@ SData * _RecData(sf::TcpSocket &socket, int &size)//you need char * only
 				<< socket.getLocalPort() << std::endl;
 		std::cout << "==================================" << std::endl;
 		socket.disconnect();
+		size = -1;
+		return 0;
 	}
 
 	packet >> size;
-	SData * data = new SData[size+1];
-	data[size].itis = false;
-	for(SData* i = data; i < data+size; i++)
+	SData * data = new SData[size];
+	for(int i = 0; i < size; i++)
 	{
-		packet >> data -> Num;
-		packet >> data -> NewX; 
-		packet >> data -> NewY;
-		packet >> data -> Act;
-		packet >> data -> Com;
+		packet >> data[i].Num;
+		packet >> data[i].NewX;
+		packet >> data[i].NewY;
+		packet >> data[i].Act;
+		packet >> data[i].Com;
 	}
 	if(size == 0)
+	{
+		delete [] data;
 		return 0;
+	}
 	return data;
 }
 
 // * * * * * * * SERVER * * * * * * * //
-/*
-void ServerConcel( bool * done, sf::Thread * Lthread)
+namespace srv
 {
-	while(!(*done))
-	{	
-		String comend;
-		std::getlin(std::cin, comend);
+	std::vector<bool> updata;
+	std::vector<std::vector<SData>> data;
+	std::vector<std::thread*> ClientTread;
+	std::mutex bigmutex;
+}
 
-		if(comend == "!end")
+int NumClient()
+{
+	int s = 0;
+	for(int i = 0; i < srv::ClientTread.size(); i++)
+		if(srv::ClientTread[i] != 0)
+			s++;
+	return s;
+}
+
+bool __RecData(sf::TcpSocket & socket)//you need char * only
+{
+	SData * new_data;
+	int PortNum = socket.getLocalPort();
+	int size = 0;
+
+	socket.setBlocking(false);
+	new_data = _RecData(socket,size);
+	socket.setBlocking(true);
+
+	if(size == -1)
+		return false;
+
+	if(size == 0)
+		return true;
+
+	srv::data[PortNum].resize(size);
+	for(int i = 0; i < size; i++)
+		new_data[i].Num = PortNum;
+
+	// // // // // // 
+	srv::bigmutex.lock();
+
+	for(int i = 0; i < size; i++)
+		srv::data[PortNum][i] = new_data[i];
+	for(int i = 0; i < LAStPORT; i++)
+		srv::updata[i] = true;
+
+	srv::bigmutex.unlock();
+	// // // // // // 
+	delete [] new_data;
+
+	std::cout << "==================================" << std::endl;
+	std::cout << "  data come from port " 
+		<< PortNum << std::endl;
+	std::cout << "  itis: " 
+		<< srv::data[PortNum][0].Com << std::endl;
+	std::cout << "==================================" << std::endl;
+	
+	return true;
+}
+
+void SendAllData(sf::TcpSocket & socket)
+{
+	int size = 0;
+	int k = 0;
+
+	srv::bigmutex.lock();
+
+	for(int i = 0; i < srv::data.size(); i++)
+		for(int j = 0; j < srv::data[i].size(); j++)
+			size++;
+
+	SData * DataForSend = new SData [size];
+	
+	if(srv::updata[socket.getLocalPort()]) // <- updata only
+		for(int i = 0; i < srv::data.size(); i++)
 		{
-			*done = true;
-			Lthread -> 
+			srv::updata[socket.getLocalPort()] = false; 
+			for(int j = 0; j < srv::data[i].size(); j++)
+				if(srv::data[i][j].Num != 0)
+				{
+					DataForSend[k++] = srv::data[i][j];
+				}
 		}
+
+	srv::bigmutex.unlock();
+	_SendData(socket, DataForSend, size);
+
+	delete [] DataForSend;	
+}
+
+void WorkingWithClient(sf::TcpSocket * sockets, int * ind)
+{
+	int MyPort = *ind - STARtPORT;
+	delete ind;
+	while(1)
+	{
+		if(!__RecData(sockets[MyPort]))
+		{
+			srv::data[MyPort].clear();
+			break;
+		}
+
+		SendAllData(sockets[MyPort]);
+
+		usleep(15);
 	}
 }
-*/
 
 void BigLins(sf::TcpSocket * sockets)
 {
@@ -122,9 +220,15 @@ void BigLins(sf::TcpSocket * sockets)
 			sf::TcpListener lis;	
 			if(sockets[i-STARtPORT].getLocalPort() != 0)
 				continue;
+
 			if(lis.listen(i) == sf::Socket::Error)
 				continue;
-			lis.accept(sockets[i-STARtPORT]);
+
+			lis.accept(sockets[i - STARtPORT]);
+
+			int * ind = new int;
+			*ind = i;
+			srv::ClientTread[i - STARtPORT] = new std::thread(WorkingWithClient, sockets, ind);
 
 			std::cout << "==================================" << std::endl;
 			std::cout << "  Client connect to port " << i << std::endl;
@@ -134,99 +238,32 @@ void BigLins(sf::TcpSocket * sockets)
 	}
 }
 
-int NumOfClient(sf::TcpSocket * sockets)
-{
-	int s = 0;
-	for(int i = STARtPORT; i < LAStPORT; i++)
-		if(sockets[i-STARtPORT].getLocalPort())
-			s++;
-	return s;
-}
-
-SData ** RecAllData(sf::TcpSocket * sockets, int N)
-{
-	SData ** data = new SData * [N+1];
-	data[N] = 0;
-	int k = 0, size = 0;
-	for(int i = STARtPORT; i < LAStPORT; i++)
-	{
-		if(sockets[i-STARtPORT].getLocalPort() == 0)
-			continue;
-		sockets[i-STARtPORT].setBlocking(false);
-		data[k++] = _RecData(sockets[i-STARtPORT],size);
-
-		for(int j = 0; j < size; j++)
-			data[k-1][j].Num = i;
-
-		if(size != 0)
-		{
-			std::cout << "==================================" << std::endl;
-			std::cout << "  Data come from port " 
-				<< sockets[i-STARtPORT].getLocalPort() << std::endl;
-			std::cout << "==================================" << std::endl;
-		}
-		sockets[i-STARtPORT].setBlocking(true);
-	}
-	return data;
-}
-
-void SendAllData(sf::TcpSocket * sockets, SData ** data, int N)
-{
-	int size = 0;
-	int k = 0;
-	for(int i = 0; i < N; i++)
-	{
-		if(data[i] == 0)
-			continue;
-		for(int j = 0; data[i][j].itis != false; j++)
-			size++;
-	}
-	SData * DataForSend = new SData [size];
-	
-	for(int i = 0; i < N; i++)
-	{
-		if(data[i] == 0)
-			continue;
-		for(int j = 0; data[i][j].itis != false; j++)
-			DataForSend[k++] = data[i][j];
-	}
-
-	for(int i = STARtPORT; i < LAStPORT; i++)
-		if(sockets[i-STARtPORT].getLocalPort() != 0)
-			_SendData(sockets[i-STARtPORT], DataForSend, size);	
-}
 
 void Server()
 {
-	bool done = false;
-	sf::TcpSocket sockets[LAStPORT];
-	sf::Thread Lthread(&BigLins, sockets);
-	Lthread.launch();
-	while(!done)
+	srv::data.resize(LAStPORT);
+	srv::ClientTread.resize(LAStPORT);
+	srv::updata.resize(LAStPORT);
+	sf::TcpSocket * sockets = new sf::TcpSocket[LAStPORT];
+	std::thread LThread(BigLins, sockets);
+
+	char i;
+	while(1)
 	{
-		int N = NumOfClient(sockets);
-		SData ** data;
-		data = RecAllData(sockets, N);
-
-
-		// * * * * TEST_OF_SERVER * * * * //
-		for(int i = 0; i < N; i++)
+		std::cin >> i;
+		for(int i = 0; i < srv::data.size(); i++)
 		{
-			if(data[i] == 0)
-				continue;
-			for(int j = 0; data[i][j].itis != false; j++)
-				std::cout << data[i][j].Com << std::endl;
+			if(srv::data[i].size() != 0)
+			{
+				std::cout << srv::data[i][0].Num << ':';
+				for(int j = 0; j < srv::data[i].size(); j++)
+					if(srv::data[i][j].Num != 0)
+						std::cout << srv::data[i][j].Com << ' ';
+				std::cout << std::endl;
+			}
 		}
-
-		// you backend will be hear !!!!!
-
-		SendAllData(sockets, data, N);
-
-		for(int i = 0; i < N+1; i++)
-			delete [] data[i];
-		delete [] data;
-        usleep(10);
 	}
+	LThread.join();
 }
 
 
