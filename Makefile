@@ -5,7 +5,7 @@ NAME = NetWork.cpp Test.cpp
 all: $(PROG)
 
 $(PROG):$(OBJ)
-	g++ -o $(PROG) $(OBJ) -lsfml-network -lsfml-system -lsfml-graphics -lsfml-window
+	g++ -o $(PROG) $(OBJ) -lsfml-network -lsfml-system -lsfml-graphics -lsfml-window -lpthread -Wall 
 
 $(OBJ):
 	g++ -c $(NAME)

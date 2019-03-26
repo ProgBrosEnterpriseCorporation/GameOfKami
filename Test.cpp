@@ -32,13 +32,16 @@ int main()
 	if(con == 's')
 	{
 		std::cout << IP << std::endl;
-		Server();
+		Srv::get(10,3000).Server();
 	}	
 	else if(con == 'c')
 	{	
 		std::cout << "Enter IP:";
 		std::cin >> IP_name;
 		MyPort = SerCon(socket, IP_name);
+		SData S;
+		S.Com = "!hear!";
+		_SendData(socket, &S, 1); 
 		std::cout << "==================================" << std::endl;
 		std::cout << "  You connect to port " << MyPort << std::endl;
 		std::cout << "==================================" << std::endl;
