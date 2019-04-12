@@ -14,7 +14,7 @@ void OnePortLic(sf::TcpSocket &socket,int port, bool DEBAG)
 
 	if(DEBAG = true)
 	{
-		sf::IpAddress IP = sf::IpAddress::getLocalAddress();
+		sf::IpAddress IP = sf::IpAddress::getPublicAddress();
 		std::cout << "Server local IP:" << IP << std::endl;
 	}
 
